@@ -2,10 +2,8 @@ import { client } from '@/lib/prisma'
 import axios from 'axios'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   //WIRE UP AI AGENT
   const body = await req.json()
   const { id } = params

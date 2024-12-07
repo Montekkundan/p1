@@ -9,13 +9,20 @@ import {
 import React from 'react'
 
 type Props = {
-  params: {
+  params: Promise<{
     folderId: string
     workspaceId: string
-  }
+  }>
 }
 
-const page = async ({ params: { folderId, workspaceId } }: Props) => {
+const page = async (props: Props) => {
+  const params = await props.params;
+
+  const {
+    folderId,
+    workspaceId
+  } = params;
+
   const query = new QueryClient()
   await query.prefetchQuery({
     queryKey: ['folder-videos'],
