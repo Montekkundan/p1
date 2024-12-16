@@ -75,6 +75,7 @@ const VideoPreview = ({ videoId }: Props) => {
         >
           <source
             src={`${process.env.NEXT_PUBLIC_CLOUD_FRONT_STREAM_URL}/${video.source}#1`}
+            // src={`https://montekp1.s3.us-east-2.amazonaws.com/${video.source}#1`}
           />
         </video>
         <div className="flex flex-col text-2xl gap-y-4">

@@ -5,7 +5,11 @@ import CardMenu from './video-card-menu'
 import CopyLink from './copy-link'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Dot, Share2, User } from 'lucide-react'
+import { Dot, Share2, User, Trash2 } from 'lucide-react'
+import Modal from '../modal'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
+import { io } from 'socket.io-client';
 
 type Props = {
   User: {
@@ -30,6 +34,42 @@ const VideoCard = (props: Props) => {
     (new Date().getTime() - props.createdAt.getTime()) / (24 * 60 * 60 * 1000)
   )
 
+  const handleDelete = async () => {
+    try {
+      // First delete from database
+      const deleteFromDB = await fetch(`/api/recording/${props.id}/delete`, {
+        method: 'DELETE',
+      });
+
+      if (!deleteFromDB.ok) {
+        throw new Error('Failed to delete video from database');
+      }
+
+      // Then delete from AWS via socket
+      const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL as string);
+      
+      socket.emit('delete-video', {
+        filename: props.source,
+        videoId: props.id
+      });
+
+      socket.on('video-deleted', (response: { success: boolean, error?: string }) => {
+        if (response.success) {
+          toast.success('Video deleted successfully');
+          // Optionally trigger a refetch or remove the video from the UI
+          window.location.reload(); // Or use a better state management solution
+        } else {
+          toast.error(response.error || 'Failed to delete video');
+        }
+        socket.disconnect();
+      });
+
+    } catch (error) {
+      toast.error('Failed to delete video');
+      console.error('Error deleting video:', error);
+    }
+  };
+
   return (
     <Loader
       className="bg-[#171717] flex justify-center items-center border-[1px] border-[rgb(37,37,37)] rounded-xl"
@@ -37,6 +77,24 @@ const VideoCard = (props: Props) => {
     >
       <div className=" group overflow-hidden cursor-pointer bg-[#171717] relative border-[1px] border-[#252525] flex flex-col rounded-xl" suppressHydrationWarning>
         <div className="absolute top-3 right-3 z-50 gap-x-3 hidden group-hover:flex">
+          <Modal
+            title="Delete Video"
+            description="Are you sure you want to delete this video? This action cannot be undone."
+            trigger={
+              <Button variant="ghost" size="icon" className="p-[5px] h-5 bg-hover:bg-transparent bg-[#252525]">
+                <Trash2 className="text-red-500" size={20} />
+              </Button>
+            }
+          >
+            <div className="flex justify-end gap-3 mt-4">
+              <Button variant="outline" onClick={() => document.querySelector('dialog')?.close()}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete}>
+                Delete
+              </Button>
+            </div>
+          </Modal>
           <CardMenu
             currentFolderName={props.Folder?.name}
             videoId={props.id}
@@ -59,6 +117,7 @@ const VideoCard = (props: Props) => {
           >
             <source
               src={`${process.env.NEXT_PUBLIC_CLOUD_FRONT_STREAM_URL}/${props.source}#t=1`}
+              // src={`https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_S3_REGION}.amazonaws.com/${props.source}#t=1`}
             />
           </video>
           <div className="px-5 py-3 flex flex-col gap-7-2 z-20">
