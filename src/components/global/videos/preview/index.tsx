@@ -70,7 +70,7 @@ const VideoPreview = ({ videoId }: Props) => {
         </div>
         <video
           preload="metadata"
-          className="w-full aspect-video opacity-50 rounded-xl"
+          className="w-full aspect-video rounded-xl"
           controls
         >
           <source

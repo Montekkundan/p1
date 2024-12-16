@@ -22,7 +22,7 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
   const { status: videosStatus, data: videos } = videoData as VideosProps
 
   return (
-    <div className="flex flex-col gap-4 mt-4">
+    <div className="flex flex-col gap-4 mt-4" suppressHydrationWarning>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <VideoRecorderDuotone />

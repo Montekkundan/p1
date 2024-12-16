@@ -5,7 +5,7 @@ import Stripe from 'stripe'
 const stripe = new Stripe(process.env.STRIPE_CLIENT_SECRET as string)
 
 export async function GET() {
-  console.log(process.env.STRIPE_CLIENT_SECRET, 'GEt endpoint hit👉🏻')
+  console.log(process.env.STRIPE_CLIENT_SECRET, 'Get endpoint hit👉🏻')
   const user = await currentUser()
   if (!user) return NextResponse.json({ status: 404 })
   const priceId = process.env.STRIPE_SUBSCRIPTION_PRICE_ID
