@@ -2,7 +2,13 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5001', 'http://localhost:3000']
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5001',
+  'http://localhost:3000',
+  `https://montekp1.s3.us-east-2.amazonaws.com/`,
+  process.env.NEXT_PUBLIC_CLOUD_FRONT_STREAM_URL,
+]
 
 const corsOptions = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',

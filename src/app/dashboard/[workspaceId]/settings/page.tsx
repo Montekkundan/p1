@@ -33,7 +33,7 @@ const SettingsPage = () => {
   }
 
   return (
-    <div>
+    <div suppressHydrationWarning>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         <div className="lg:col-span-4 flex lg:flex-row flex-col items-start gap-5">
           <div

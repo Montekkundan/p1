@@ -1,18 +1,12 @@
-import {
-  Enabled,
-  QueryFunction,
-  QueryKey,
-  useQuery,
-} from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 
-export const useQueryData = (
-  queryKey: QueryKey,
-  queryFn: QueryFunction,
-  enabled?: Enabled
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const useQueryData = <T = any>(
+  key: string[],
+  queryFn: () => Promise<T>
 ) => {
-  const { data, isPending, isFetched, refetch, isFetching } = useQuery({
-    queryKey,
+  return useQuery({
+    queryKey: key,
     queryFn,
   })
-  return { data, isPending, isFetched, refetch, isFetching }
 }

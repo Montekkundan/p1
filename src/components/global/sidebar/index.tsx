@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { NotificationProps, WorkspaceProps } from '@/types/index.type'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Modal from '../modal'
 import { Menu, PlusCircle } from 'lucide-react'
 import Search from '../search'
@@ -51,16 +51,18 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const { data: workspace } = data as WorkspaceProps
   const { data: count } = notifications as NotificationProps
 
+  useEffect(() => {
+    if (isFetched && workspace) {
+      dispatch(WORKSPACES({ workspaces: workspace.workspace }))
+    }
+  }, [isFetched, workspace, dispatch])
+
   const onChangeActiveWorkspace = (value: string) => {
     router.push(`/dashboard/${value}`)
   }
   const currentWorkspace = workspace.workspace.find(
     (s) => s.id === activeWorkspaceId
   )
-
-  if (isFetched && workspace) {
-    dispatch(WORKSPACES({ workspaces: workspace.workspace }))
-  }
 
   const SidebarSection = (
     <div className="bg-[#111111] flex-none relative p-4 h-full w-[250px] flex flex-col gap-4 items-center overflow-hidden">

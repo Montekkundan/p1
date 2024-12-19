@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { VideosProps } from '@/types/index.type'
 import React from 'react'
 import VideoCard from './video-card'
+import { useSearchParams } from 'next/navigation'
 
 type Props = {
   folderId: string
@@ -14,12 +15,31 @@ type Props = {
 }
 
 const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
+  const searchParams = useSearchParams()
+  const searchTerm = searchParams.get('search')
   
   const { data: videoData } = useQueryData([videosKey], () =>
     getAllUserVideos(folderId)
   )
 
   const { status: videosStatus, data: videos } = videoData as VideosProps
+
+  const filteredVideos = React.useMemo(() => {
+    if (!videos || !searchTerm) return videos
+    
+    return videos.filter((video) => {
+      const searchableText = [
+        video.title,
+        video.User?.firstname,
+        video.User?.lastname,
+        video.Folder?.name
+      ].filter(Boolean).join(' ').toLowerCase()
+      
+      return searchableText.includes(searchTerm.toLowerCase())
+    })
+  }, [videos, searchTerm])
+
+  const hasVideos = videosStatus === 200 && filteredVideos?.length > 0
 
   return (
     <div className="flex flex-col gap-4 mt-4" suppressHydrationWarning>
@@ -31,13 +51,13 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
       </div>
       <section
         className={cn(
-          videosStatus !== 200
+          !hasVideos
             ? 'p-5'
             : 'grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
-        {videosStatus === 200 ? (
-          videos.map((video) => (
+        {hasVideos ? (
+          filteredVideos.map((video) => (
             <VideoCard
               key={video.id}
               workspaceId={workspaceId}
@@ -45,7 +65,9 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
             />
           ))
         ) : (
-          <p className="text-[#BDBDBD]"> No videos in workspace</p>
+          <p className="text-[#BDBDBD]">
+            {searchTerm ? 'No videos found matching your search' : 'No videos in workspace'}
+          </p>
         )}
       </section>
     </div>

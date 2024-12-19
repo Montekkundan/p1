@@ -1,11 +1,10 @@
 'use client'
-import React from 'react'
-import Loader from '../loader'
+import React, { useState } from 'react'
 import CardMenu from './video-card-menu'
 import CopyLink from './copy-link'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Dot, Share2, User, Trash2 } from 'lucide-react'
+import { Dot, Share2, User, Trash2, FolderMinus } from 'lucide-react'
 import Modal from '../modal'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -34,15 +33,19 @@ const VideoCard = (props: Props) => {
     (new Date().getTime() - props.createdAt.getTime()) / (24 * 60 * 60 * 1000)
   )
 
+  const [videoError, setVideoError] = useState(false);
+
   const handleDelete = async () => {
     try {
       // First delete from database
-      const deleteFromDB = await fetch(`/api/recording/${props.id}/delete`, {
+      const deleteResponse = await fetch(`/api/recording/${props.id}/delete`, {
         method: 'DELETE',
       });
 
-      if (!deleteFromDB.ok) {
-        throw new Error('Failed to delete video from database');
+      const data = await deleteResponse.json();
+
+      if (data.status !== 200) {
+        throw new Error(data.error || 'Failed to delete video from database');
       }
 
       // Then delete from AWS via socket
@@ -56,27 +59,55 @@ const VideoCard = (props: Props) => {
       socket.on('video-deleted', (response: { success: boolean, error?: string }) => {
         if (response.success) {
           toast.success('Video deleted successfully');
-          // Optionally trigger a refetch or remove the video from the UI
-          window.location.reload(); // Or use a better state management solution
+          window.location.reload();
         } else {
-          toast.error(response.error || 'Failed to delete video');
+          toast.error(response.error || 'Failed to delete video from storage');
         }
         socket.disconnect();
       });
 
     } catch (error) {
-      toast.error('Failed to delete video');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete video');
       console.error('Error deleting video:', error);
     }
   };
 
+  const handleRemoveFromFolder = async () => {
+    try {
+      const response = await fetch(`/api/recording/${props.id}/folder`, {
+        method: 'DELETE',
+      })
+      
+      const data = await response.json()
+      if (data.status !== 200) {
+        throw new Error(data.error || 'Failed to remove from folder')
+      }
+
+      toast.success('Removed from folder')
+      window.location.reload()
+    } catch (error) {
+      console.error('Error removing from folder:', error)
+      toast.error('Failed to remove from folder')
+    }
+  }
+
+  // console.log('video', props.source)
+  // console.log('video', `${process.env.NEXT_PUBLIC_CLOUD_FRONT_STREAM_URL}/${props.source}#t=1`)
+
   return (
-    <Loader
-      className="bg-[#171717] flex justify-center items-center border-[1px] border-[rgb(37,37,37)] rounded-xl"
-      state={props.processing}
-    >
       <div className=" group overflow-hidden cursor-pointer bg-[#171717] relative border-[1px] border-[#252525] flex flex-col rounded-xl" suppressHydrationWarning>
         <div className="absolute top-3 right-3 z-50 gap-x-3 hidden group-hover:flex">
+          {props.Folder && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                handleRemoveFromFolder()
+              }}
+              className="p-2 hover:bg-neutral-800 rounded-full transition"
+            >
+              <FolderMinus className="w-4 h-4 text-yellow-500" />
+            </button>
+          )}
           <Modal
             title="Delete Video"
             description="Are you sure you want to delete this video? This action cannot be undone."
@@ -114,11 +145,17 @@ const VideoCard = (props: Props) => {
             controls={false}
             preload="metadata"
             className="w-full aspect-video opacity-50 z-20"
+            onError={() => setVideoError(true)}
           >
             <source
               src={`${process.env.NEXT_PUBLIC_CLOUD_FRONT_STREAM_URL}/${props.source}#t=1`}
-              // src={`https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_S3_REGION}.amazonaws.com/${props.source}#t=1`}
+              type={props.source.endsWith('.webm') ? 'video/webm' : 'video/mp4'}
             />
+            {videoError && (
+              <div className="flex items-center justify-center h-full bg-gray-900">
+                <p className="text-sm text-gray-400">Video preview unavailable</p>
+              </div>
+            )}
           </video>
           <div className="px-5 py-3 flex flex-col gap-7-2 z-20">
             <h2 className="text-sm font-semibold text-[#BDBDBD]">
@@ -155,7 +192,6 @@ const VideoCard = (props: Props) => {
           </div>
         </Link>
       </div>
-    </Loader>
   )
 }
 

@@ -9,6 +9,7 @@ import { useMutationDataState } from '@/hooks/useMutationData'
 import Videos from '../videos'
 import { useDispatch } from 'react-redux'
 import { FOLDERS } from '@/redux/slices/folders'
+import React, { useEffect } from 'react'
 
 type Props = {
   workspaceId: string
@@ -39,12 +40,11 @@ const Folders = ({ workspaceId }: Props) => {
 
   const { status, data: folders } = data as FoldersProps
 
-  // if (isFetched && folders) {
-  // }
-
-  if (isFetched && folders) {
-    dispatch(FOLDERS({ folders: folders }))
-  }
+  useEffect(() => {
+    if (isFetched && folders) {
+      dispatch(FOLDERS({ folders: folders }))
+    }
+  }, [isFetched, folders, dispatch])
 
   return (
     <div

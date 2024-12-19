@@ -10,6 +10,7 @@ type Props = {
   notifications?: number
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SidebarItem = ({ href, icon, selected, title, notifications }: Props) => {
   return (
     <li className="cursor-pointer my-[5px]">

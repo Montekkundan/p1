@@ -15,7 +15,7 @@ const RichLink = ({ description, id, source, title }: Props) => {
         style="display: block"
         >
             <source
-                type="video/webm"
+                type="video/webm, video/mp4"
                 src="${process.env.NEXT_PUBLIC_CLOUD_FRONT_STREAM_URL}/${source}"
             />
         </video>

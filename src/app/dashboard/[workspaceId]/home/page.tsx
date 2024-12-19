@@ -7,8 +7,6 @@ const Home = async () => {
   const videos = await getWixContent()
   const post = await howToPost()
 
-  console.log(videos)
-
   return (
     <div className="flex items-center justify-center flex-col gap-2">
       <h1 className="text-2xl font-bold">A Message From The P1 Team</h1>

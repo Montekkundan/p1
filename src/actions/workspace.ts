@@ -500,3 +500,45 @@ export const howToPost = async () => {
     return { status: 400 }
   }
 }
+
+export const getAllVideos = async () => {
+  try {
+    const videos = await client.video.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      },
+      include: {
+        User: {
+          select: {
+            firstname: true,
+            lastname: true,
+            image: true
+          }
+        },
+        Folder: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        WorkSpace: {
+          select: {
+            name: true,
+            type: true
+          }
+        }
+      }
+    })
+
+    return {
+      status: 200,
+      data: videos
+    }
+  } catch (error) {
+    console.error('Error fetching all videos:', error)
+    return {
+      status: 500,
+      error: 'Failed to fetch videos'
+    }
+  }
+}

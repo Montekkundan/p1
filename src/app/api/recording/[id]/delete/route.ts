@@ -1,4 +1,5 @@
 import { client } from '@/lib/prisma'
+import { currentUser } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 export async function DELETE(
@@ -6,19 +7,50 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const user = await currentUser()
+    if (!user) {
+      return NextResponse.json({
+        error: 'Unauthorized',
+        status: 401
+      })
+    }
+
     const videoId = params.id
 
-    // Delete the video record from the database
-    // This will automatically handle the relation cleanup due to the onDelete: Cascade setting
-    await client.video.delete({
+    // First check if video exists and user has permission
+    const video = await client.video.findFirst({
       where: {
         id: videoId,
-      },
+        User: {
+          clerkid: user.id
+        }
+      }
     })
 
-    return NextResponse.json({ status: 200 })
+    if (!video) {
+      return NextResponse.json({
+        error: 'Video not found or unauthorized',
+        status: 404
+      })
+    }
+
+    // Delete the video from database
+    await client.video.delete({
+      where: {
+        id: videoId
+      }
+    })
+
+    return NextResponse.json({
+      message: 'Video deleted successfully',
+      status: 200
+    })
+
   } catch (error) {
-    console.error('Error deleting video:', error)
-    return NextResponse.json({ status: 500, error: 'Failed to delete video' })
+    console.error('Delete video error:', error)
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : 'Failed to delete video',
+      status: 500
+    })
   }
 } 

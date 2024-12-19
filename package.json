@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "studio": "prisma studio"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.712.0",
+    "@aws-sdk/client-s3": "^3.712.0",
+    "@aws-sdk/s3-presigned-post": "^3.712.0",
+    "@aws-sdk/s3-request-presigner": "^3.712.0",
     "@clerk/nextjs": "^6.7.0",
     "@hookform/error-message": "^2.0.1",
     "@hookform/resolvers": "^3.9.1",
@@ -62,6 +66,7 @@
     "react": "19.0.0-rc-66855b96-20241106",
     "react-day-picker": "8.10.1",
     "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.53.2",
     "react-redux": "^9.1.2",
     "react-resizable-panels": "^2.1.7",

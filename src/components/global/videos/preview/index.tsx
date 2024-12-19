@@ -13,6 +13,7 @@ import AiTools from '../../ai-tools'
 import VideoTranscript from '../../video-transcript'
 import Activities from '../../activities'
 import EditVideo from '../edit'
+import {toast} from 'sonner'
 
 type Props = {
   videoId: string
@@ -42,6 +43,36 @@ const VideoPreview = ({ videoId }: Props) => {
       notifyFirstView()
     }
   }, [video.views, videoId])
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_S3_REGION}.amazonaws.com/${video.source}`, {
+        method: 'GET',
+        headers: {
+          'Origin': window.location.origin
+        },
+        mode: 'cors'
+      })
+      
+      if (!response.ok) throw new Error('Download failed')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = video.title || video.source
+      document.body.appendChild(a)
+      a.click()
+      
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      toast.success('Video downloaded successfully')
+    } catch (error) {
+      console.error('Download error:', error)
+      toast.error('Failed to download video')
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 lg:py-10 overflow-y-auto gap-5">
@@ -109,7 +140,12 @@ const VideoPreview = ({ videoId }: Props) => {
             source={video.source}
             title={video.title as string}
           />
-          <Download className="text-[#4d4c4c]" />
+          <button 
+            onClick={handleDownload}
+            className="hover:text-neutral-300 transition"
+          >
+            <Download className="text-[#4d4c4c]" />
+          </button>
         </div>
         <div>
           <TabMenu
